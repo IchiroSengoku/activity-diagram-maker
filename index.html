@@ -1,0 +1,926 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>アクティビティ図 メーカー</title>
+<style>
+  :root {
+    --primary: #2563eb;
+    --primary-hover: #1d4ed8;
+    --bg: #f8fafc;
+    --border: #cbd5e1;
+    --header-bg: #e2e8f0;
+    --text: #1e293b;
+    --success: #16a34a;
+    --danger: #dc2626;
+  }
+  * {
+    box-sizing: border-box;
+  }
+  body {
+    font-family: "Hiragino Kaku Gothic ProN", "Yu Gothic", "Meiryo", sans-serif;
+    background-color: var(--bg);
+    color: var(--text);
+    margin: 0;
+    padding: 20px;
+  }
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 2px solid var(--border);
+    padding-bottom: 12px;
+    margin-bottom: 20px;
+  }
+  h1 {
+    font-size: 1.5rem;
+    margin: 0;
+  }
+  .badge {
+    background: #dbeafe;
+    color: #1e40af;
+    font-size: 0.8rem;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-weight: bold;
+  }
+  .container {
+    display: grid;
+    grid-template-columns: 1.25fr 1fr;
+    gap: 24px;
+    align-items: start;
+  }
+  @media (max-width: 1024px) {
+    .container {
+      grid-template-columns: 1fr;
+    }
+  }
+  .panel {
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  }
+  .toolbar {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  button {
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 0.9rem;
+    padding: 8px 14px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: #ffffff;
+    color: var(--text);
+    font-weight: bold;
+    transition: all 0.15s;
+  }
+  button:hover:not(:disabled) {
+    background: #f1f5f9;
+  }
+  button:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+  }
+  button.primary {
+    background: var(--primary);
+    color: #ffffff;
+    border-color: var(--primary);
+  }
+  button.primary:hover {
+    background: var(--primary-hover);
+  }
+  .toolbar-hint {
+    font-size: 0.82rem;
+    color: #64748b;
+  }
+  .table-wrapper {
+    overflow-x: auto;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 520px;
+  }
+  th, td {
+    border: 1px solid var(--border);
+    padding: 8px;
+    vertical-align: top;
+  }
+  th {
+    background: var(--header-bg);
+  }
+  .col-header {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .col-header-top input {
+    width: 100%;
+    font-weight: bold;
+    font-size: 0.95rem;
+    text-align: center;
+    padding: 6px 8px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: #ffffff;
+  }
+  .col-header-top input:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
+  }
+  .col-actions {
+    display: flex;
+    justify-content: center;
+    gap: 3px;
+  }
+  .col-actions button {
+    padding: 2px 7px;
+    font-size: 0.78rem;
+    font-weight: bold;
+    border: 1px solid var(--border);
+    background: #ffffff;
+    border-radius: 4px;
+    color: #475569;
+    cursor: pointer;
+    line-height: 1.3;
+  }
+  .col-actions button:hover:not(:disabled) {
+    background: #f1f5f9;
+  }
+  .col-actions button.btn-add-col {
+    color: var(--success);
+  }
+  .col-actions button.btn-add-col:hover {
+    background: #f0fdf4;
+    border-color: #86efac;
+  }
+  .col-actions button.btn-del-col {
+    color: #64748b;
+  }
+  .col-actions button.btn-del-col:hover:not(:disabled) {
+    color: var(--danger);
+    background: #fef2f2;
+    border-color: #fca5a5;
+  }
+  .cell-box {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .cell-box textarea {
+    width: 100%;
+    min-height: 54px;
+    resize: vertical;
+    font-family: inherit;
+    font-size: 0.9rem;
+    padding: 6px;
+    border: 1px solid #e2e8f0;
+    border-radius: 4px;
+  }
+  .cell-box textarea:focus {
+    outline: none;
+    border-color: var(--primary);
+    background: #f8fafc;
+  }
+  .cell-type {
+    font-size: 0.75rem;
+    padding: 2px 4px;
+    border: 1px solid #e2e8f0;
+    border-radius: 4px;
+    color: #475569;
+    background: #f8fafc;
+    align-self: flex-end;
+  }
+  .row-actions {
+    width: 130px;
+    min-width: 130px;
+    text-align: center;
+    vertical-align: middle;
+    white-space: nowrap;
+    background: #fafafa;
+  }
+  .row-actions button {
+    padding: 4px 6px;
+    font-size: 0.82rem;
+    margin: 0 1px;
+    border-radius: 4px;
+  }
+  .row-actions button.btn-add-row {
+    color: var(--success);
+  }
+  .row-actions button.btn-add-row:hover {
+    background: #f0fdf4;
+    border-color: #86efac;
+  }
+  .row-actions button.del-row {
+    color: #64748b;
+  }
+  .row-actions button.del-row:hover:not(:disabled) {
+    color: var(--danger);
+    border-color: #fca5a5;
+    background: #fef2f2;
+  }
+  .tfoot-cell {
+    padding: 10px;
+    background: #f8fafc;
+    border-top: 2px solid var(--border);
+    text-align: center;
+  }
+  .btn-add-row-bottom {
+    width: 100%;
+    padding: 10px 16px;
+    border: 1px dashed #94a3b8;
+    background: #ffffff;
+    color: #334155;
+    font-size: 0.9rem;
+    font-weight: bold;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .btn-add-row-bottom:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+    background: #eff6ff;
+  }
+  .hint {
+    font-size: 0.82rem;
+    color: #64748b;
+    margin-top: 12px;
+    line-height: 1.5;
+  }
+
+  /* 右側パネル：アクティビティ図プレビュー */
+  .output-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+  .output-header h2 {
+    font-size: 1.1rem;
+    margin: 0;
+  }
+  .preview-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .render-status {
+    font-size: 0.8rem;
+    color: #64748b;
+  }
+  .btn-sm {
+    padding: 4px 10px;
+    font-size: 0.8rem;
+  }
+  .diagram-container {
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    min-height: 380px;
+    max-height: 580px;
+    overflow: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    position: relative;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.04);
+  }
+  #diagramImage {
+    max-width: 100%;
+    height: auto;
+    object-fit: contain;
+    transition: opacity 0.25s ease;
+  }
+  .diagram-loading {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    color: #64748b;
+    font-size: 0.88rem;
+    background: rgba(255, 255, 255, 0.9);
+    padding: 12px 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    pointer-events: none;
+  }
+  .spinner {
+    width: 26px;
+    height: 26px;
+    border: 3px solid #e2e8f0;
+    border-top-color: var(--primary);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+  .diagram-error {
+    text-align: center;
+    color: #b91c1c;
+    background: #fef2f2;
+    padding: 16px;
+    border-radius: 6px;
+    border: 1px solid #fecaca;
+    font-size: 0.88rem;
+    line-height: 1.5;
+  }
+
+  /* 下側のボタン・コードセクション */
+  .code-action-wrapper {
+    margin-top: 14px;
+  }
+  .btn-generate-code {
+    width: 100%;
+    padding: 10px 16px;
+    background: #f8fafc;
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-size: 0.92rem;
+    font-weight: bold;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .btn-generate-code:hover {
+    background: #e2e8f0;
+    border-color: #94a3b8;
+  }
+  .code-section {
+    margin-top: 14px;
+    border-top: 1px solid var(--border);
+    padding-top: 14px;
+    animation: fadeIn 0.2s ease-in-out;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  pre {
+    background: #1e293b;
+    color: #f8fafc;
+    padding: 14px;
+    border-radius: 6px;
+    font-family: Consolas, Monaco, "Courier New", monospace;
+    font-size: 0.88rem;
+    line-height: 1.5;
+    overflow-x: auto;
+    margin: 0;
+    min-height: 200px;
+    max-height: 380px;
+    white-space: pre-wrap;
+  }
+  .copy-msg {
+    font-size: 0.8rem;
+    color: #16a34a;
+    font-weight: bold;
+    margin-left: 8px;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .copy-msg.show {
+    opacity: 1;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>アクティビティ図 メーカー</h1>
+  <span class="badge">リアルタイム図生成 ＆ 表入力</span>
+</header>
+
+<div class="container">
+  <!-- 左側：表入力エリア -->
+  <div class="panel">
+    <div class="toolbar">
+      <button type="button" class="primary" onclick="addRow()">＋ 行を追加</button>
+      <button type="button" onclick="addColumn()">＋ 列を追加</button>
+      <span class="toolbar-hint">※ 行・列の「＋」で好きな位置に挿入もできます</span>
+    </div>
+
+    <div class="table-wrapper">
+      <table id="activityTable">
+        <thead id="tableHead"></thead>
+        <tbody id="tableBody"></tbody>
+        <tfoot id="tableFoot"></tfoot>
+      </table>
+    </div>
+
+    <div class="hint">
+      ・<strong>行の追加</strong>：上部「＋ 行を追加」、表下部の追加枠、または各行の「＋」でその下に追加<br>
+      ・<strong>列の追加</strong>：上部「＋ 列を追加」、または各列ヘッダーの「＋」でその右に追加<br>
+      ・1行につき1つの動きを入力してください。セルのプルダウンで「分岐（ひし形）」や「終了」も選べます。
+    </div>
+  </div>
+
+  <!-- 右側：アクティビティ図プレビュー ＆ PlantUMLコード生成 -->
+  <div class="panel">
+    <div class="output-header">
+      <h2>アクティビティ図</h2>
+      <div class="preview-actions">
+        <span id="renderStatus" class="render-status">準備完了</span>
+        <button type="button" class="btn-sm" onclick="openDiagramInNewTab()" title="新しいタブで高画質SVGを表示">別タブで開く</button>
+      </div>
+    </div>
+
+    <!-- アクティビティ図 表示エリア -->
+    <div id="diagramContainer" class="diagram-container">
+      <div id="diagramLoading" class="diagram-loading" style="display: none;">
+        <div class="spinner"></div>
+        <span>アクティビティ図を描画中...</span>
+      </div>
+      <img id="diagramImage" alt="アクティビティ図プレビュー" src="" onload="onDiagramLoaded()" onerror="onDiagramError()" />
+      <div id="diagramError" class="diagram-error" style="display: none;">
+        <p>⚠️ 図の取得に失敗しました。<br>インターネット接続環境をお確かめください。</p>
+      </div>
+    </div>
+
+    <!-- その下側：PlantUMLコードを生成 ボタン -->
+    <div class="code-action-wrapper">
+      <button type="button" id="btnGenCode" class="btn-generate-code" onclick="togglePlantUMLCode()">
+        📄 PlantUMLコードを生成
+      </button>
+    </div>
+
+    <!-- PlantUMLコード表示エリア（ボタン押下で展開） -->
+    <div id="codeSection" class="code-section" style="display: none;">
+      <div class="output-header">
+        <h3 style="margin: 0; font-size: 1rem;">生成されたPlantUMLコード</h3>
+        <div>
+          <span id="copyMsg" class="copy-msg">コピーしました！</span>
+          <button type="button" class="primary" onclick="copyCode()">コードをコピー</button>
+        </div>
+      </div>
+      <pre id="plantumlOutput"></pre>
+    </div>
+  </div>
+</div>
+
+<script>
+  // 初期データ（ATMの例）
+  let columns = ["顧客", "ATM", "銀行"];
+  let rows = [
+    [
+      { text: "キャッシュカードを挿入する", type: "action" },
+      { text: "", type: "action" },
+      { text: "", type: "action" }
+    ],
+    [
+      { text: "", type: "action" },
+      { text: "暗証番号の入力を求める", type: "action" },
+      { text: "", type: "action" }
+    ],
+    [
+      { text: "暗証番号を入力する", type: "action" },
+      { text: "", type: "action" },
+      { text: "", type: "action" }
+    ],
+    [
+      { text: "", type: "action" },
+      { text: "", type: "action" },
+      { text: "暗証番号は正しい？", type: "branch" }
+    ],
+    [
+      { text: "", type: "action" },
+      { text: "現金を排出する", type: "action" },
+      { text: "", type: "action" }
+    ],
+    [
+      { text: "現金を受け取る", type: "stop" },
+      { text: "", type: "action" },
+      { text: "", type: "action" }
+    ]
+  ];
+
+  let currentPlantUML = "";
+  let diagramUpdateTimer = null;
+  let isCodeSectionVisible = false;
+
+  // テーブル全体を再描画
+  function renderTable() {
+    const thead = document.getElementById("tableHead");
+    const tbody = document.getElementById("tableBody");
+    const tfoot = document.getElementById("tableFoot");
+
+    // ヘッダー行の構築
+    let headHtml = "<tr>";
+    columns.forEach((colName, colIndex) => {
+      const disableDel = columns.length <= 1 ? "disabled" : "";
+      const disableLeft = colIndex === 0 ? "disabled" : "";
+      const disableRight = colIndex === columns.length - 1 ? "disabled" : "";
+
+      headHtml += `
+        <th>
+          <div class="col-header">
+            <div class="col-header-top">
+              <input type="text" value="${escapeHtml(colName)}"
+                placeholder="役割名"
+                title="役割・担当者・システム名"
+                oninput="updateColumnName(${colIndex}, this.value)">
+            </div>
+            <div class="col-actions">
+              <button type="button" title="左へ移動" onclick="moveColumn(${colIndex}, -1)" ${disableLeft}>←</button>
+              <button type="button" title="右へ移動" onclick="moveColumn(${colIndex}, 1)" ${disableRight}>→</button>
+              <button type="button" class="btn-add-col" title="この右に列を挿入" onclick="insertColumnAfter(${colIndex})">＋</button>
+              <button type="button" class="btn-del-col" title="列を削除" onclick="deleteColumn(${colIndex})" ${disableDel}>×</button>
+            </div>
+          </div>
+        </th>
+      `;
+    });
+    headHtml += `<th class="row-actions">行の操作</th></tr>`;
+    thead.innerHTML = headHtml;
+
+    // データ行の構築
+    let bodyHtml = "";
+    rows.forEach((row, rowIndex) => {
+      bodyHtml += "<tr>";
+      row.forEach((cell, colIndex) => {
+        bodyHtml += `
+          <td>
+            <div class="cell-box">
+              <textarea placeholder="動きを入力..."
+                oninput="updateCellText(${rowIndex}, ${colIndex}, this.value)">${escapeHtml(cell.text)}</textarea>
+              <select class="cell-type" onchange="updateCellType(${rowIndex}, ${colIndex}, this.value)">
+                <option value="action" ${cell.type === "action" ? "selected" : ""}>処理（四角）</option>
+                <option value="branch" ${cell.type === "branch" ? "selected" : ""}>分岐（ひし形）</option>
+                <option value="stop" ${cell.type === "stop" ? "selected" : ""}>処理して終了</option>
+              </select>
+            </div>
+          </td>
+        `;
+      });
+
+      const disableUp = rowIndex === 0 ? "disabled" : "";
+      const disableDown = rowIndex === rows.length - 1 ? "disabled" : "";
+      const disableDelRow = rows.length <= 1 ? "disabled" : "";
+
+      bodyHtml += `
+        <td class="row-actions">
+          <button type="button" title="上へ移動" onclick="moveRow(${rowIndex}, -1)" ${disableUp}>↑</button>
+          <button type="button" title="下へ移動" onclick="moveRow(${rowIndex}, 1)" ${disableDown}>↓</button>
+          <button type="button" class="btn-add-row" title="この下に行を挿入" onclick="insertRowAfter(${rowIndex})">＋</button>
+          <button type="button" class="del-row" title="行を削除" onclick="deleteRow(${rowIndex})" ${disableDelRow}>×</button>
+        </td>
+      </tr>`;
+    });
+    tbody.innerHTML = bodyHtml;
+
+    // フッター（最下部への行追加エリア）
+    tfoot.innerHTML = `
+      <tr>
+        <td colspan="${columns.length + 1}" class="tfoot-cell">
+          <button type="button" class="btn-add-row-bottom" onclick="addRow()">＋ 新しい行を末尾に追加</button>
+        </td>
+      </tr>
+    `;
+
+    scheduleDiagramUpdate();
+  }
+
+  // 指定位置に列を挿入
+  function insertColumn(index = columns.length) {
+    const colNumber = columns.length + 1;
+    columns.splice(index, 0, `役割${colNumber}`);
+    rows.forEach(row => {
+      row.splice(index, 0, { text: "", type: "action" });
+    });
+    renderTable();
+  }
+
+  // 末尾に列を追加
+  function addColumn() {
+    insertColumn(columns.length);
+  }
+
+  // 指定列の右に列を挿入
+  function insertColumnAfter(colIndex) {
+    insertColumn(colIndex + 1);
+  }
+
+  // 列の左右移動
+  function moveColumn(colIndex, direction) {
+    const targetIndex = colIndex + direction;
+    if (targetIndex < 0 || targetIndex >= columns.length) return;
+
+    const tempCol = columns[colIndex];
+    columns[colIndex] = columns[targetIndex];
+    columns[targetIndex] = tempCol;
+
+    rows.forEach(row => {
+      const tempCell = row[colIndex];
+      row[colIndex] = row[targetIndex];
+      row[targetIndex] = tempCell;
+    });
+
+    renderTable();
+  }
+
+  // 列を削除
+  function deleteColumn(colIndex) {
+    if (columns.length <= 1) return;
+    const hasContent = rows.some(row => row[colIndex] && row[colIndex].text.trim() !== "");
+    if (hasContent) {
+      if (!confirm(`「${columns[colIndex]}」の列には入力された文字があります。削除してもよろしいですか？`)) return;
+    }
+    columns.splice(colIndex, 1);
+    rows.forEach(row => {
+      row.splice(colIndex, 1);
+    });
+    renderTable();
+  }
+
+  // 列名を変更
+  function updateColumnName(colIndex, value) {
+    columns[colIndex] = value;
+    scheduleDiagramUpdate();
+  }
+
+  // 指定位置に行を挿入
+  function insertRow(index = rows.length) {
+    const newRow = columns.map(() => ({ text: "", type: "action" }));
+    rows.splice(index, 0, newRow);
+    renderTable();
+  }
+
+  // 末尾に行を追加
+  function addRow() {
+    insertRow(rows.length);
+  }
+
+  // 指定行の下に行を挿入
+  function insertRowAfter(rowIndex) {
+    insertRow(rowIndex + 1);
+  }
+
+  // 行を上下に移動
+  function moveRow(rowIndex, direction) {
+    const targetIndex = rowIndex + direction;
+    if (targetIndex < 0 || targetIndex >= rows.length) return;
+    const temp = rows[rowIndex];
+    rows[rowIndex] = rows[targetIndex];
+    rows[targetIndex] = temp;
+    renderTable();
+  }
+
+  // 行を削除
+  function deleteRow(rowIndex) {
+    if (rows.length <= 1) return;
+    const hasContent = rows[rowIndex].some(cell => cell.text.trim() !== "");
+    if (hasContent) {
+      if (!confirm("この行には入力された文字があります。削除してもよろしいですか？")) return;
+    }
+    rows.splice(rowIndex, 1);
+    renderTable();
+  }
+
+  // セルの文字を更新
+  function updateCellText(rowIndex, colIndex, value) {
+    rows[rowIndex][colIndex].text = value;
+    scheduleDiagramUpdate();
+  }
+
+  // セルの種別を更新
+  function updateCellType(rowIndex, colIndex, value) {
+    rows[rowIndex][colIndex].type = value;
+    scheduleDiagramUpdate();
+  }
+
+  // PlantUMLコードを生成
+  function generatePlantUML() {
+    let lines = ["@startuml"];
+    let hasStarted = false;
+    let currentLane = null;
+    let endedExplicitly = false;
+
+    rows.forEach(row => {
+      row.forEach((cell, colIndex) => {
+        const text = cell.text.trim();
+        if (!text) return;
+
+        const laneName = columns[colIndex].trim() || `役割${colIndex + 1}`;
+        if (currentLane !== laneName) {
+          lines.push(`|${laneName}|`);
+          currentLane = laneName;
+        }
+
+        if (!hasStarted) {
+          lines.push("start");
+          hasStarted = true;
+        }
+
+        endedExplicitly = false;
+        const safeText = text.replace(/\n/g, "\\n");
+
+        if (cell.type === "branch") {
+          lines.push(`if (${safeText}) then (はい)`);
+          lines.push(`else (いいえ)`);
+          lines.push(`  :エラー・中断;`);
+          lines.push(`  stop`);
+          lines.push(`endif`);
+        } else if (cell.type === "stop") {
+          lines.push(`:${safeText};`);
+          lines.push(`stop`);
+          endedExplicitly = true;
+        } else {
+          lines.push(`:${safeText};`);
+        }
+      });
+    });
+
+    if (!hasStarted) {
+      const firstLane = columns[0]?.trim() || "役割1";
+      lines.push(`|${firstLane}|`);
+      lines.push("start");
+      lines.push(":動きを入力してください;");
+      lines.push("stop");
+    } else if (!endedExplicitly) {
+      lines.push("stop");
+    }
+
+    lines.push("@enduml");
+    return lines.join("\n");
+  }
+
+  // デバウンス付きで図とコードを更新
+  function scheduleDiagramUpdate() {
+    currentPlantUML = generatePlantUML();
+    if (isCodeSectionVisible) {
+      document.getElementById("plantumlOutput").textContent = currentPlantUML;
+    }
+
+    const statusEl = document.getElementById("renderStatus");
+    if (statusEl) statusEl.textContent = "変更を検知...";
+
+    if (diagramUpdateTimer) clearTimeout(diagramUpdateTimer);
+    diagramUpdateTimer = setTimeout(() => {
+      renderDiagram();
+    }, 400);
+  }
+
+  // アクティビティ図を描画
+  async function renderDiagram() {
+    const statusEl = document.getElementById("renderStatus");
+    const loadingEl = document.getElementById("diagramLoading");
+    const imgEl = document.getElementById("diagramImage");
+    const errorEl = document.getElementById("diagramError");
+
+    if (statusEl) statusEl.textContent = "図を描画中...";
+    if (loadingEl) loadingEl.style.display = "flex";
+    if (errorEl) errorEl.style.display = "none";
+    if (imgEl) imgEl.style.opacity = "0.4";
+
+    try {
+      const encoded = await encodePlantUML(currentPlantUML);
+      const url = `https://www.plantuml.com/plantuml/svg/${encoded}`;
+      imgEl.src = url;
+    } catch (err) {
+      console.error("PlantUML encoding failed:", err);
+      onDiagramError();
+    }
+  }
+
+  // 図のロード成功時
+  function onDiagramLoaded() {
+    const statusEl = document.getElementById("renderStatus");
+    const loadingEl = document.getElementById("diagramLoading");
+    const imgEl = document.getElementById("diagramImage");
+    const errorEl = document.getElementById("diagramError");
+
+    if (loadingEl) loadingEl.style.display = "none";
+    if (errorEl) errorEl.style.display = "none";
+    if (imgEl) imgEl.style.opacity = "1";
+    if (statusEl) statusEl.textContent = "最新の状態";
+  }
+
+  // 図のロード失敗時
+  function onDiagramError() {
+    const statusEl = document.getElementById("renderStatus");
+    const loadingEl = document.getElementById("diagramLoading");
+    const imgEl = document.getElementById("diagramImage");
+    const errorEl = document.getElementById("diagramError");
+
+    if (loadingEl) loadingEl.style.display = "none";
+    if (errorEl) errorEl.style.display = "block";
+    if (statusEl) statusEl.textContent = "描画エラー";
+  }
+
+  // 新しいタブで図を開く
+  function openDiagramInNewTab() {
+    const imgEl = document.getElementById("diagramImage");
+    if (imgEl && imgEl.src) {
+      window.open(imgEl.src, "_blank");
+    }
+  }
+
+  // PlantUMLコードセクションの表示/非表示トグル（コード生成）
+  function togglePlantUMLCode() {
+    const section = document.getElementById("codeSection");
+    const btn = document.getElementById("btnGenCode");
+
+    isCodeSectionVisible = !isCodeSectionVisible;
+    if (isCodeSectionVisible) {
+      currentPlantUML = generatePlantUML();
+      document.getElementById("plantumlOutput").textContent = currentPlantUML;
+      section.style.display = "block";
+      btn.textContent = "📄 PlantUMLコードを再生成（閉じる）";
+      section.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    } else {
+      section.style.display = "none";
+      btn.textContent = "📄 PlantUMLコードを生成";
+    }
+  }
+
+  // クリップボードへコピー
+  function copyCode() {
+    const code = document.getElementById("plantumlOutput").textContent;
+    navigator.clipboard.writeText(code).then(() => {
+      const msg = document.getElementById("copyMsg");
+      msg.classList.add("show");
+      setTimeout(() => msg.classList.remove("show"), 2000);
+    });
+  }
+
+  // PlantUML URLエンコード（CompressionStream + 独自64進数）
+  async function encodePlantUML(text) {
+    const bytes = new TextEncoder().encode(text);
+    const stream = new Blob([bytes]).stream();
+    const compressedStream = stream.pipeThrough(new CompressionStream("deflate-raw"));
+    const buffer = await new Response(compressedStream).arrayBuffer();
+    return encode64(new Uint8Array(buffer));
+  }
+
+  function encode6bit(b) {
+    if (b < 10) return String.fromCharCode(48 + b);
+    b -= 10;
+    if (b < 26) return String.fromCharCode(65 + b);
+    b -= 26;
+    if (b < 26) return String.fromCharCode(97 + b);
+    b -= 26;
+    if (b === 0) return "-";
+    if (b === 1) return "_";
+    return "?";
+  }
+
+  function append3bytes(b1, b2, b3) {
+    const c1 = b1 >> 2;
+    const c2 = ((b1 & 0x3) << 4) | (b2 >> 4);
+    const c3 = ((b2 & 0xf) << 2) | (b3 >> 6);
+    const c4 = b3 & 0x3f;
+    return encode6bit(c1 & 0x3f) +
+           encode6bit(c2 & 0x3f) +
+           encode6bit(c3 & 0x3f) +
+           encode6bit(c4 & 0x3f);
+  }
+
+  function encode64(data) {
+    let r = "";
+    for (let i = 0; i < data.length; i += 3) {
+      if (i + 2 === data.length) {
+        r += append3bytes(data[i], data[i + 1], 0).substring(0, 3);
+      } else if (i + 1 === data.length) {
+        r += append3bytes(data[i], 0, 0).substring(0, 2);
+      } else {
+        r += append3bytes(data[i], data[i + 1], data[i + 2]);
+      }
+    }
+    return r;
+  }
+
+  // XSS対策用エスケープ
+  function escapeHtml(str) {
+    return str
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+
+  // 初回描画
+  renderTable();
+</script>
+</body>
+</html>
